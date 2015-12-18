@@ -321,7 +321,9 @@ cmaes = function(
   callMonitor(monitor, "after")
   
   #if it is a string generating monitor, get the result string and return as only function result
+  print("Check?")
   if (!is.null(monitor$getResult)) {
+    print("Check!")
     return(callMonitor(monitor, "getResult"))
   }
 
