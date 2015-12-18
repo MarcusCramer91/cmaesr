@@ -319,19 +319,26 @@ cmaes = function(
   }
 
   callMonitor(monitor, "after")
+  
+  #if it is a string generating monitor, get the result string and return as only function result
+  if (!is.null(monitor$getResult)) {
+    return(callMonitor(monitor, "getResult"))
+  }
 
-	makeS3Obj(
-		par.set = par.set,
-		best.param = best.param,
-		best.fitness = best.fitness,
-		n.evals = n.evals,
-		past.time = as.integer(difftime(Sys.time(), start.time, units = "secs")),
-		n.iters = iter - 1L,
-    n.restarts = run,
-    population.trace = population.trace,
-		message = stop.obj$stop.msgs,
-		classes = "cma_result"
-	)
+	else {
+	  makeS3Obj(
+  		par.set = par.set,
+  		best.param = best.param,
+  		best.fitness = best.fitness,
+  		n.evals = n.evals,
+  		past.time = as.integer(difftime(Sys.time(), start.time, units = "secs")),
+  		n.iters = iter - 1L,
+      n.restarts = run,
+      population.trace = population.trace,
+  		message = stop.obj$stop.msgs,
+  		classes = "cma_result"
+	  )
+	}
 }
 
 #' @export

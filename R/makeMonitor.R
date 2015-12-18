@@ -83,12 +83,10 @@ makeSimpleMonitor = function(max.params = 4L) {
 makeTXTMonitor = function(max.params = 4L, path, Fopt, function_id, dimension, instance_id) {
   assertInt(max.params, na.ok = FALSE)
   force(max.params)
-  file = file.path(path, paste("CMAES_result_", function_id, "_", dimension, ".txt", sep = ""))
-  print(file)
-  dir.create(file.path(path), showWarnings = FALSE)
+  result = character(0)
   makeMonitor(
     before = function(envir = parent.frame()) {
-      catf(paste("Starting optimization. Instance:", instance_id), file = path, append = TRUE)
+      result = cbind(result, paste("Starting optimization. Instance:", instance_id, sep =""))
     },
     step = function(envir = parent.frame()) {
       # determine number of parameters to show
@@ -104,10 +102,13 @@ makeTXTMonitor = function(max.params = 4L, path, Fopt, function_id, dimension, i
       par.string = collapse(paste(names(best.param), sprintf("%+10.4f", best.param), sep = ": "), sep = "   ")
       
       # combine with fitness value and iteration counter
-      catf("Iteration %4.i: %s, y = %+10.4f", envir$iter, par.string, (envir$best.fitness - Fopt), file = path, append = TRUE)
+      result = cbind(result, paste("Iteration: ", envir$iter, (envir$best.fitness - Fopt), par.string))
     },
     after = function(envir = parent.frame()) {
-      catf("Optimization terminated.", file = path, append = TRUE)
+      result = cbind(result, "Optimization terminated.")
+    },
+    getResult = function() {
+      return(result)
     }
   )
 }
@@ -248,7 +249,7 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
 #' @param monitor [\code{CMAES_monitor}]\cr
 #'   Monitor.
 #' @param step [\code{character(1)}]\cr
-#'   One of before, step, after.
+#'   One of before, step, after, getResult.
 #' @param envir [\code{environment}]\cr
 #'   The environment to pass.
 callMonitor = function(monitor, step, envir = parent.frame()) {
