@@ -99,10 +99,10 @@ makeTXTMonitor = function(max.params = 4L, path, Fopt, function_id, dimension, i
       names(best.param) = getParamIds(envir$par.set, repeated = TRUE, with.nr = TRUE)[seq(max.param.id)]
       
       # build param string
-      par.string = collapse(paste(names(best.param), sprintf("%+10.4f", best.param), sep = ": "), sep = "   ")
+      par.string = collapse((best.param), sep = " ")
       
       # combine with fitness value and iteration counter
-      return(paste("Iteration: ", envir$iter, (envir$best.fitness - Fopt), par.string))
+      return(paste(envir$iter, (envir$best.fitness - Fopt), par.string))
     },
     after = function(envir = parent.frame()) {
       return("Optimization terminated.")
