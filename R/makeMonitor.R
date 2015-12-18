@@ -68,6 +68,50 @@ makeSimpleMonitor = function(max.params = 4L) {
 	)
 }
 
+#' @title Generator for .txt output monitor.
+#'
+#' @description This monitor generates a txt file used for result logging
+#'
+#' @param max.params [\code{integer(1)}]\cr
+#'   Maximal number of parameters to show in output.
+#' @param path 
+#'   Path to output
+#' @param Fopt
+#'   Global optimum of function
+#' @return [\code{cma_monitor}]
+#' @export
+makeTXTMonitor = function(max.params = 4L, path, Fopt, function_id, dimension, instance_id) {
+  assertInt(max.params, na.ok = FALSE)
+  force(max.params)
+  file = file.path(path, paste("CMAES_result_", function_id, "_", dimension, ".txt", sep = ""))
+  print(file)
+  dir.create(file.path(path), showWarnings = FALSE)
+  makeMonitor(
+    before = function(envir = parent.frame()) {
+      catf(paste("Starting optimization. Instance:", instance_id), file = path, append = TRUE)
+    },
+    step = function(envir = parent.frame()) {
+      # determine number of parameters to show
+      max.param.id = min(getNumberOfParameters(envir$objective.fun), max.params)
+      
+      # get best parameter
+      best.param = as.numeric(envir$best.param[seq(max.param.id)])
+      
+      # name parameters
+      names(best.param) = getParamIds(envir$par.set, repeated = TRUE, with.nr = TRUE)[seq(max.param.id)]
+      
+      # build param string
+      par.string = collapse(paste(names(best.param), sprintf("%+10.4f", best.param), sep = ": "), sep = "   ")
+      
+      # combine with fitness value and iteration counter
+      catf("Iteration %4.i: %s, y = %+10.4f", envir$iter, par.string, (envir$best.fitness - Fopt), file = path, append = TRUE)
+    },
+    after = function(envir = parent.frame()) {
+      catf("Optimization terminated.", file = path, append = TRUE)
+    }
+  )
+}
+
 #' @title Generator for visualizing monitor.
 #'
 #' @description This generator visualizes the optimization process for two-dimensional functions
