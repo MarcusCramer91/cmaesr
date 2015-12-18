@@ -160,7 +160,7 @@ cmaes = function(
   n.evals = 0L
 	start.time = Sys.time()
 
-	result = c(result, callMonitor(monitor, "before")))
+	result = c(result, callMonitor(monitor, "before"))
 
   # somehow dirty trick to "really quit" if stopping condition is met and
   # now more restart should be triggered.
