@@ -86,6 +86,9 @@ cmaes = function(
 	par.set = getParamSet(objective.fun)
   lb = getLower(par.set); ub = getUpper(par.set)
 	n = getNumberOfParameters(objective.fun)
+	
+	#result
+	result = character(0)
 
 	# sanity checks
 	if (isNoisy(objective.fun)) {
@@ -157,7 +160,7 @@ cmaes = function(
   n.evals = 0L
 	start.time = Sys.time()
 
-	callMonitor(monitor, "before")
+	result = c(result, callMonitor(monitor, "before")))
 
   # somehow dirty trick to "really quit" if stopping condition is met and
   # now more restart should be triggered.
@@ -281,7 +284,7 @@ cmaes = function(
       C = BD %*% t(BD)
       Cinvsqrt = B %*% diag(1 / diag(D)) %*% t(B) # update C^-1/2
 
-      callMonitor(monitor, "step")
+      result = c(result, callMonitor(monitor, "step"))
 
       # escape flat fitness values
       if (fitn.ordered[1L] == fitn.ordered[ceiling(0.7 * lambda)]) {
@@ -318,15 +321,11 @@ cmaes = function(
     }
   }
 
-  callMonitor(monitor, "after")
+  result = c(result, callMonitor(monitor, "after"))
   
   #if it is a string generating monitor, get the result string and return as only function result
-  print("Check?")
-  if (!is.null(monitor$getResult)) {
-    print("Check!")
-    return(callMonitor(monitor, "getResult"))
-  }
-
+  
+  if (length(result) > 0) return(result)
 	else {
 	  makeS3Obj(
   		par.set = par.set,

@@ -16,7 +16,7 @@
 #'   Monitor object.
 #' @seealso \code{\link{makeSimpleMonitor}}, \code{\link{makeVisualizingMonitor}}
 #' @export
-makeMonitor = function(before = NULL, step = NULL, after = NULL, ...) {
+makeMonitor = function(before = NULL, step = NULL, after = NULL, getResult = NULL, ...) {
   if (!is.null(before)) assertFunction(before)
   if (!is.null(step)) assertFunction(step)
   if (!is.null(after)) assertFunction(after)
@@ -83,10 +83,10 @@ makeSimpleMonitor = function(max.params = 4L) {
 makeTXTMonitor = function(max.params = 4L, path, Fopt, function_id, dimension, instance_id) {
   assertInt(max.params, na.ok = FALSE)
   force(max.params)
-  result = character(0)
+  result = "test"
   makeMonitor(
     before = function(envir = parent.frame()) {
-      result = cbind(result, paste("Starting optimization. Instance:", instance_id, sep =""))
+      return(paste("Starting optimization. Instance:", instance_id, sep =""))
     },
     step = function(envir = parent.frame()) {
       # determine number of parameters to show
@@ -102,13 +102,10 @@ makeTXTMonitor = function(max.params = 4L, path, Fopt, function_id, dimension, i
       par.string = collapse(paste(names(best.param), sprintf("%+10.4f", best.param), sep = ": "), sep = "   ")
       
       # combine with fitness value and iteration counter
-      result = cbind(result, paste("Iteration: ", envir$iter, (envir$best.fitness - Fopt), par.string))
+      return(paste("Iteration: ", envir$iter, (envir$best.fitness - Fopt), par.string))
     },
     after = function(envir = parent.frame()) {
-      result = cbind(result, "Optimization terminated.")
-    },
-    getResult = function() {
-      return(result)
+      return("Optimization terminated.")
     }
   )
 }
@@ -249,11 +246,11 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
 #' @param monitor [\code{CMAES_monitor}]\cr
 #'   Monitor.
 #' @param step [\code{character(1)}]\cr
-#'   One of before, step, after, getResult.
+#'   One of before, step, after
 #' @param envir [\code{environment}]\cr
 #'   The environment to pass.
 callMonitor = function(monitor, step, envir = parent.frame()) {
   if (!is.null(monitor)) {
-    monitor[[step]](envir = envir)
+    return(monitor[[step]](envir = envir))
   }
 }
