@@ -227,6 +227,14 @@ cmaes = function(
   		z = matrix(rnorm(n * lambda), ncol = lambda)
       y = BD %*% z # ~ N(0, C) #same as z in first iteration, creates a normal distribution according to z
       x = m + sigma * y # ~ N(m, sigma^2 C)
+      
+      #check if boundaries are passed
+      for (i in 1:n) {
+        for(j in 1:length(x)) {
+          if (x[j,i] < lb[i]) x[j,i] = lb[i]
+          if (x[j,i] > ub[i]) x[i,j] = up[i]
+        }
+      }
 
       # compute fitness values (each idividual is a column of x)
       fitn = if (isVectorized(objective.fun)) {
