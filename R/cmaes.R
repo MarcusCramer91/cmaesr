@@ -302,6 +302,8 @@ cmaes = function(
       print(paste("Iter:", iter))
       print(paste("Current best:", fitn.ordered[1]))
       print(paste("Other fitness:", fitn.ordered[ceiling(0.7 * lambda)]))
+      print(paste("Current fitnesses:", collapse(fitn.ordered)))
+      print(paste("Length of fitnesses vector:", length(fitn.ordered)))
       if (fitn.ordered[1L] == fitn.ordered[ceiling(0.7 * lambda)]) {
         sigma = sigma * exp(0.2 + c.sigma / damps)
         if (!is.null(monitor)) {
