@@ -299,11 +299,11 @@ cmaes = function(
 
       result = c(result, callMonitor(monitor, "step"))
       # escape flat fitness values
-      print(paste("Iter:", iter))
-      print(paste("Current best:", fitn.ordered[1]))
-      print(paste("Other fitness:", fitn.ordered[ceiling(0.7 * lambda)]))
-      print(paste("Current fitnesses:", collapse(fitn.ordered)))
-      print(paste("Length of fitnesses vector:", length(fitn.ordered)))
+      sink(paste("Iter:", iter), append = TRUE, file = "Debug.txt")
+      sink(paste("Current best:", fitn.ordered[1]), append = TRUE, file = "Debug.txt")
+      sink(paste("Other fitness:", fitn.ordered[ceiling(0.7 * lambda)]), append = TRUE, file = "Debug.txt")
+      sink(paste("Current fitnesses:", collapse(fitn.ordered)), append = TRUE, file = "Debug.txt")
+      sink(paste("Length of fitnesses vector:", length(fitn.ordered)), append = TRUE, file = "Debug.txt")
       if (fitn.ordered[1L] == fitn.ordered[ceiling(0.7 * lambda)]) {
         sigma = sigma * exp(0.2 + c.sigma / damps)
         if (!is.null(monitor)) {
