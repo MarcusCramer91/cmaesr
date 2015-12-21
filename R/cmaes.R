@@ -181,6 +181,7 @@ cmaes = function(
     }
 
     # initialize recombination weights
+    # assign higher weights to better solutions
     weights = getCMAESParameter(control, "weights", log(mu + 0.5) - log(1:mu))
     if (any(weights < 0)) {
       stopf("All weights need to be positive, but there are %i negative ones.", sum(which(weights < 0)))
@@ -205,11 +206,11 @@ cmaes = function(
 
     # covariance matrix
     sigma = getCMAESParameter(control, "sigma", 0.5)
-    B = diag(n)
-    D = diag(n)
-    BD = B %*% D
-    C = BD %*% t(BD) # C = B D^2 B^T = B B^T, since D equals I_n
-    Cinvsqrt = B %*% diag(1 / sqrt(diag(D))) %*% t(B)
+    B = diag(n) 
+    D = diag(n) #not needed?
+    BD = B %*% D #not needed?
+    C = BD %*% t(BD) # C = B D^2 B^T = B B^T, since D equals I_n #not needed?
+    Cinvsqrt = B %*% diag(1 / sqrt(diag(D))) %*% t(B) #not needed?
 
     # no restart trigger fired until now
     restarting = FALSE
@@ -221,7 +222,7 @@ cmaes = function(
 
       # create new population of search points
   		z = matrix(rnorm(n * lambda), ncol = lambda)
-      y = BD %*% z # ~ N(0, C)
+      y = BD %*% z # ~ N(0, C) #same as z in first iteration, creates a normal distribution according to z
       x = m + sigma * y # ~ N(m, sigma^2 C)
 
       # compute fitness values (each idividual is a column of x)
@@ -285,8 +286,11 @@ cmaes = function(
       Cinvsqrt = B %*% diag(1 / diag(D)) %*% t(B) # update C^-1/2
 
       result = c(result, callMonitor(monitor, "step"))
-
       # escape flat fitness values
+      print(paste("Iter:", iter))
+      print(paste("Current best:", fitn.ordered[1]))
+      print(paste("Lambda:", lambda))
+      print(paste("Other fitness:", fitn.ordered[ceiling(0.7 * lambda)]))
       if (fitn.ordered[1L] == fitn.ordered[ceiling(0.7 * lambda)]) {
         sigma = sigma * exp(0.2 + c.sigma / damps)
         if (!is.null(monitor)) {
