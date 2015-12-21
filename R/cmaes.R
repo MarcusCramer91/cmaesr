@@ -241,6 +241,12 @@ cmaes = function(
       # order fitness values
       fitn.ordered.idx = order(fitn, decreasing = FALSE)
       fitn.ordered = fitn[fitn.ordered.idx]
+      
+      ##########################################
+      #attention: dirtiest fix possible
+      #some function evaluations seem to produce NaNs or NAs
+      #in this case, simply set the fitness to Inf
+      if (is.na(fitn.ordered) |is.nan(fitn.ordered)) fitn.ordered = Inf
 
       # lambda best individuals
       fitn.best = fitn.ordered[1:mu]
@@ -295,7 +301,6 @@ cmaes = function(
       # escape flat fitness values
       print(paste("Iter:", iter))
       print(paste("Current best:", fitn.ordered[1]))
-      print(paste("Lambda:", lambda))
       print(paste("Other fitness:", fitn.ordered[ceiling(0.7 * lambda)]))
       if (fitn.ordered[1L] == fitn.ordered[ceiling(0.7 * lambda)]) {
         sigma = sigma * exp(0.2 + c.sigma / damps)
