@@ -222,6 +222,13 @@ stopOnCondCov = function(tol = 1e14) {
 #===============================================================================
 #=============================Online Convergence Detection======================
 #===============================================================================
+#' @title Stopping condition: Online Convergence Detection.
+#'
+#' @description Stop if OCD....
+#'
+#' @return [\code{cma_stopping_condition}]
+#' @family stopping conditions
+#' @export
 stopOnOCD = function(varLimit, nPreGen, maxGen)
 {
   # Check if varLimit is a single numeric
