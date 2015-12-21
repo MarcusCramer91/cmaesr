@@ -102,7 +102,7 @@ makeTXTMonitor = function(max.params = 4L, path, Fopt, function_id, dimension, i
       par.string = collapse((best.param), sep = " ")
       
       # combine with fitness value and iteration counter
-      return(paste(envir$iter, n.eval, (envir$best.fitness - Fopt), par.string))
+      return(paste(envir$iter, envir$n.eval, (envir$best.fitness - Fopt), par.string))
     },
     after = function(envir = parent.frame()) {
       return("Optimization terminated.")
