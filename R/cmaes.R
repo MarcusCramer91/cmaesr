@@ -232,7 +232,7 @@ cmaes = function(
       for (i in 1:n) {
         for(j in 1:ncol(x)) {
           if (x[i,j] < lb[i]) x[j,i] = lb[i]
-          if (x[i,j] > ub[i]) x[i,j] = up[i]
+          if (x[i,j] > ub[i]) x[i,j] = ub[i]
         }
       }
 
