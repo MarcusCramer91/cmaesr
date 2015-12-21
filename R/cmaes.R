@@ -241,12 +241,7 @@ cmaes = function(
       # order fitness values
       fitn.ordered.idx = order(fitn, decreasing = FALSE)
       fitn.ordered = fitn[fitn.ordered.idx]
-      
-      ##########################################
-      #attention: dirtiest fix possible
-      #some function evaluations seem to produce NaNs or NAs
-      #in this case, simply set the fitness to Inf
-      if (is.nan(fitn.ordered)) fitn.ordered = Inf
+
 
       # lambda best individuals
       fitn.best = fitn.ordered[1:mu]
@@ -304,6 +299,13 @@ cmaes = function(
       write(paste("Other fitness:", fitn.ordered[ceiling(0.7 * lambda)]), append = TRUE, file = "Debug.txt")
       write(paste("Current fitnesses:", collapse(fitn.ordered)), append = TRUE, file = "Debug.txt")
       write(paste("Length of fitnesses vector:", length(fitn.ordered)), append = TRUE, file = "Debug.txt")
+      write(paste("Current values:", collapse(x, sep = " ")), append = TRUE, file = "Debug.txt")
+      
+      ##########################################
+      #attention: dirtiest fix possible
+      #some function evaluations seem to produce NaNs or NAs
+      #in this case, simply set the fitness to Inf
+      if (is.nan(fitn.ordered)) fitn.ordered = Inf
       if (fitn.ordered[1L] == fitn.ordered[ceiling(0.7 * lambda)]) {
         sigma = sigma * exp(0.2 + c.sigma / damps)
         if (!is.null(monitor)) {
