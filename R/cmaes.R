@@ -154,6 +154,9 @@ cmaes = function(
 
   # logs
   population.trace = list()
+  # ======================================== added ====================================
+  generation.fitness = list()
+  # ======================================== added ====================================
 
   # init some termination criteria stuff
 	iter = 0L
@@ -261,6 +264,9 @@ cmaes = function(
 
       # log population
       population.trace[[iter]] = z.best
+      # ======================================== added ====================================
+      generation.fitness[[iter]] = best.fitness
+      # ======================================== added ====================================
 
   		# Update evolution path with cumulative step-size adaption (CSA) / path length control
       # For an explanation of the last factor see appendix A in https://www.lri.fr/~hansen/cmatutorial.pdf
