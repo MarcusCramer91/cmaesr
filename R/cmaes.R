@@ -246,7 +246,7 @@ cmaes = function(
       #attention: dirtiest fix possible
       #some function evaluations seem to produce NaNs or NAs
       #in this case, simply set the fitness to Inf
-      if (is.na(fitn.ordered) |is.nan(fitn.ordered)) fitn.ordered = Inf
+      if (is.nan(fitn.ordered)) fitn.ordered = Inf
 
       # lambda best individuals
       fitn.best = fitn.ordered[1:mu]
