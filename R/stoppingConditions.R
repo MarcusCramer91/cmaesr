@@ -275,6 +275,7 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
   ))
 }
 
+#' @export
 pChi2 <- function (varLimit, PI) {
   # Determine degrees of freedom
   N = length(PI)-1
