@@ -79,7 +79,8 @@ cmaes = function(
     stop.ons = c(
       getDefaultStoppingConditions()
     )
-  )) {
+  ), 
+  debug.logging = FALSE) {
 	assertClass(objective.fun, "smoof_function")
 
 	# extract relevant data
@@ -226,7 +227,6 @@ cmaes = function(
 
       # Here we apply a penalization of violated bounds
       arx.repaired = ifelse(arx < lb, lb, ifelse(arx > ub, ub, arx))
-      write(paste("Current values first:", collapse(arx.repaired, sep = " ")), append = TRUE, file = "Debug.txt")
 
       # Prepare penalization based on distance to repaired points (see Eq. 51)
       penalty.alpha = 1L
@@ -257,6 +257,11 @@ cmaes = function(
         if (fitn.repaired[valid][min.valid.idx] < best.fitness) {
           best.fitness = fitn.repaired[valid][min.valid.idx]
           best.param = arx.repaired[, valid, drop = FALSE][, min.valid.idx]
+          if (debug.logging == TRUE) {
+            write("NEW BEST SOLUTION", append = TRUE, file = "Debug.txt")
+            write(paste("New best fitness:", best.fitness), append = TRUE, file = "Debug.txt")
+            write(paste("New best param:", collapse(best.param)), append = TRUE, file = "Debug.txt")
+          }
         }
       }
 
@@ -305,14 +310,15 @@ cmaes = function(
         }
       }
 
-      
-      write(paste("Iter:", iter), append = TRUE, file = "Debug.txt")
-      write(paste("Current best:", fitn.ordered[1]), append = TRUE, file = "Debug.txt")
-      write(paste("Other fitness:", fitn.ordered[ceiling(0.7 * lambda)]), append = TRUE, file = "Debug.txt")
-      write(paste("Current fitnesses:", collapse(fitn.ordered)), append = TRUE, file = "Debug.txt")
-      write(paste("Length of fitnesses vector:", length(fitn.ordered)), append = TRUE, file = "Debug.txt")
-      write(paste("Current values:", collapse(arx.repaired, sep = " ")), append = TRUE, file = "Debug.txt")
-      write(paste("Best values", collapse(best.param, sep = " ")), append = TRUE, file = "Debug.txt")
+      if (debug.logging == TRUE) {       
+        write(paste("Iter:", iter), append = TRUE, file = "Debug.txt")
+        write(paste("Current best:", fitn.ordered[1]), append = TRUE, file = "Debug.txt")
+        write(paste("Other fitness:", fitn.ordered[ceiling(0.7 * lambda)]), append = TRUE, file = "Debug.txt")
+        write(paste("Current fitnesses:", collapse(fitn.ordered)), append = TRUE, file = "Debug.txt")
+        write(paste("Length of fitnesses vector:", length(fitn.ordered)), append = TRUE, file = "Debug.txt")
+        write(paste("Current values:", collapse(arx.repaired, sep = " ")), append = TRUE, file = "Debug.txt")
+        write(paste("Best values", collapse(best.param, sep = " ")), append = TRUE, file = "Debug.txt")
+      }
       
       # CHECK STOPPING CONDITIONS
       # =========================
