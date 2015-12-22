@@ -16,7 +16,7 @@
 #'   Monitor object.
 #' @seealso \code{\link{makeSimpleMonitor}}, \code{\link{makeVisualizingMonitor}}
 #' @export
-makeMonitor = function(before = NULL, step = NULL, after = NULL, getResult = NULL, ...) {
+makeMonitor = function(before = NULL, step = NULL, after = NULL, ...) {
   if (!is.null(before)) assertFunction(before)
   if (!is.null(step)) assertFunction(step)
   if (!is.null(after)) assertFunction(after)
@@ -68,48 +68,6 @@ makeSimpleMonitor = function(max.params = 4L) {
 	)
 }
 
-#' @title Generator for .txt output monitor.
-#'
-#' @description This monitor generates a txt file used for result logging
-#'
-#' @param max.params [\code{integer(1)}]\cr
-#'   Maximal number of parameters to show in output.
-#' @param path 
-#'   Path to output
-#' @param Fopt
-#'   Global optimum of function
-#' @return [\code{cma_monitor}]
-#' @export
-makeTXTMonitor = function(max.params = 4L, path, Fopt, function_id, dimension, instance_id) {
-  assertInt(max.params, na.ok = FALSE)
-  force(max.params)
-  result = "test"
-  makeMonitor(
-    before = function(envir = parent.frame()) {
-      return(paste("Starting optimization. Instance:", instance_id, sep =""))
-    },
-    step = function(envir = parent.frame()) {
-      # determine number of parameters to show
-      max.param.id = min(getNumberOfParameters(envir$objective.fun), max.params)
-      
-      # get best parameter
-      best.param = as.numeric(envir$best.param[seq(max.param.id)])
-      
-      # name parameters
-      names(best.param) = getParamIds(envir$par.set, repeated = TRUE, with.nr = TRUE)[seq(max.param.id)]
-      
-      # build param string
-      par.string = collapse((best.param), sep = " ")
-      
-      # combine with fitness value and iteration counter
-      return(paste(envir$iter, envir$n.evals, (envir$best.fitness - Fopt), par.string))
-    },
-    after = function(envir = parent.frame()) {
-      return("Optimization terminated.")
-    }
-  )
-}
-
 #' @title Generator for visualizing monitor.
 #'
 #' @description This generator visualizes the optimization process for two-dimensional functions
@@ -155,10 +113,10 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
   }
 
   # store last population here
-  last.x = NULL
+  last.arx = NULL
 
   # force variables
-  force(last.x)
+  force(last.arx)
   force(show.last)
   force(show.distribution)
   force(xlim)
@@ -168,7 +126,7 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
     before = function(envir = parent.frame()) {},
     step = function(envir = parent.frame()) {
       # get the population and mean/center
-      x = envir$x
+      arx = envir$arx
       m = envir$m.old
 
       # visualization only applicable for the 2D case
@@ -177,14 +135,14 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
       }
 
       #FIXME: the following lines are ugly as sin, but refactor later.
-      df = as.data.frame(t(cbind(x, m)))
+      df = as.data.frame(t(cbind(arx, m)))
       df$Type = "Current population"
       df[nrow(df), "Type"] = "Mean"
       colnames(df) = c("x1", "x2", "Type")
 
       # if last population is available, append
-      if (!is.null(last.x) && show.last) {
-        df2 = as.data.frame(t(last.x))
+      if (!is.null(last.arx) && show.last) {
+        df2 = as.data.frame(t(last.arx))
         df2$Type = "Last population"
         colnames(df2) = c("x1", "x2", "Type")
         df = rbind(df, df2)
@@ -200,7 +158,7 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
       lower = getLower(par.set)
       upper = getUpper(par.set)
 
-      ranges = apply(x, 1L, range)
+      ranges = apply(arx, 1L, range)
 
       lower.x = coalesce(xlim[1L], min(lower[1L], ranges[1L, 1L]))
       lower.y = coalesce(ylim[1L], min(lower[2L], ranges[1L, 2L]))
@@ -231,7 +189,7 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
       }
 
       # update last population
-      last.x <<- x
+      last.arx <<- arx
       print(pl)
       pause()
     },
@@ -246,11 +204,11 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
 #' @param monitor [\code{CMAES_monitor}]\cr
 #'   Monitor.
 #' @param step [\code{character(1)}]\cr
-#'   One of before, step, after
+#'   One of before, step, after.
 #' @param envir [\code{environment}]\cr
 #'   The environment to pass.
 callMonitor = function(monitor, step, envir = parent.frame()) {
   if (!is.null(monitor)) {
-    return(monitor[[step]](envir = envir))
+    monitor[[step]](envir = envir)
   }
 }
