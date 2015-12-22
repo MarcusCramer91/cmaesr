@@ -310,7 +310,7 @@ cmaes = function(
       write(paste("Other fitness:", fitn.ordered[ceiling(0.7 * lambda)]), append = TRUE, file = "Debug.txt")
       write(paste("Current fitnesses:", collapse(fitn.ordered)), append = TRUE, file = "Debug.txt")
       write(paste("Length of fitnesses vector:", length(fitn.ordered)), append = TRUE, file = "Debug.txt")
-      write(paste("Current values:", collapse(x, sep = " ")), append = TRUE, file = "Debug.txt")
+      write(paste("Current values:", collapse(arx.repaired, sep = " ")), append = TRUE, file = "Debug.txt")
       write(paste("Best values", collapse(best.param, sep = " ")), append = TRUE, file = "Debug.txt")
       
       # CHECK STOPPING CONDITIONS
