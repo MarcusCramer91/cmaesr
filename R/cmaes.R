@@ -256,7 +256,7 @@ cmaes = function(
         min.valid.idx = which.min(fitn.repaired[valid])
         if (fitn.repaired[valid][min.valid.idx] < best.fitness) {
           best.fitness = fitn.repaired[valid][min.valid.idx]
-          best.param = arx[, valid, drop = FALSE][, min.valid.idx]
+          best.param = arx.repaired[, valid, drop = FALSE][, min.valid.idx]
         }
       }
 
