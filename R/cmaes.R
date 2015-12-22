@@ -86,7 +86,10 @@ cmaes = function(
 	par.set = getParamSet(objective.fun)
   lb = getLower(par.set); ub = getUpper(par.set)
 	n = getNumberOfParameters(objective.fun)
-
+	
+	#result
+	result = character(0)
+	
 	# sanity checks
 	if (isNoisy(objective.fun)) {
 		stopf("Noisy optimization is not supported at the moment.")
@@ -152,8 +155,8 @@ cmaes = function(
 	iter = 0L
   n.evals = 0L
 	start.time = Sys.time()
-
-	callMonitor(monitor, "before")
+	
+	result = c(result, callMonitor(monitor, "before"))
 
   # somehow dirty trick to "really quit" if stopping condition is met and
   # now more restart should be triggered.
@@ -291,7 +294,7 @@ cmaes = function(
       BD = B %*% D
       Cinvsqrt = B %*% diag(1 / diag(D)) %*% t(B) # update C^-1/2
 
-      callMonitor(monitor, "step")
+      result = c(result, callMonitor(monitor, "step"))
 
       # escape flat fitness values
       if (fitn.ordered[1L] == fitn.ordered[ceiling(0.7 * lambda)]) {
@@ -328,20 +331,24 @@ cmaes = function(
     }
   }
 
-  callMonitor(monitor, "after")
-
-	makeS3Obj(
-		par.set = par.set,
-		best.param = best.param,
-		best.fitness = best.fitness,
-		n.evals = n.evals,
-		past.time = as.integer(difftime(Sys.time(), start.time, units = "secs")),
-		n.iters = iter - 1L,
-    n.restarts = run,
-    population.trace = population.trace,
-		message = stop.obj$stop.msgs,
-		classes = "cma_result"
-	)
+  result = c(result, callMonitor(monitor, "after"))
+  #if it is a string generating monitor, get the result string and return as only function result
+  
+  if (length(result) > 0) return(result)
+	else {
+  	  makeS3Obj(
+  		par.set = par.set,
+  		best.param = best.param,
+  		best.fitness = best.fitness,
+  		n.evals = n.evals,
+  		past.time = as.integer(difftime(Sys.time(), start.time, units = "secs")),
+  		n.iters = iter - 1L,
+      n.restarts = run,
+      population.trace = population.trace,
+  		message = stop.obj$stop.msgs,
+  		classes = "cma_result"
+  	  )
+  	}
 }
 
 #' @export
