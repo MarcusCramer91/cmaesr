@@ -226,6 +226,7 @@ cmaes = function(
 
       # Here we apply a penalization of violated bounds
       arx.repaired = ifelse(arx < lb, lb, ifelse(arx > ub, ub, arx))
+      write(paste("Current values first:", collapse(arx.repaired, sep = " ")), append = TRUE, file = "Debug.txt")
 
       # Prepare penalization based on distance to repaired points (see Eq. 51)
       penalty.alpha = 1L
