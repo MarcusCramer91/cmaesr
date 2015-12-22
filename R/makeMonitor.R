@@ -68,6 +68,48 @@ makeSimpleMonitor = function(max.params = 4L) {
 	)
 }
 
+#' @title Generator for .txt output monitor.
+#'
+#' @description This monitor generates a txt file used for result logging
+#'
+#' @param max.params [\code{integer(1)}]\cr
+#'   Maximal number of parameters to show in output.
+#' @param path 
+#'   Path to output
+#' @param Fopt
+#'   Global optimum of function
+#' @return [\code{cma_monitor}]
+#' @export
+makeTXTMonitor = function(max.params = 4L, path, Fopt, function_id, dimension, instance_id) {
+  assertInt(max.params, na.ok = FALSE)
+  force(max.params)
+  result = "test"
+  makeMonitor(
+    before = function(envir = parent.frame()) {
+      return(paste("Starting optimization. Instance:", instance_id, sep =""))
+    },
+    step = function(envir = parent.frame()) {
+      # determine number of parameters to show
+      max.param.id = min(getNumberOfParameters(envir$objective.fun), max.params)
+      
+      # get best parameter
+      best.param = as.numeric(envir$best.param[seq(max.param.id)])
+      
+      # name parameters
+      names(best.param) = getParamIds(envir$par.set, repeated = TRUE, with.nr = TRUE)[seq(max.param.id)]
+      
+      # build param string
+      par.string = collapse((best.param), sep = " ")
+      
+      # combine with fitness value and iteration counter
+      return(paste(envir$iter, envir$n.evals, (envir$best.fitness - Fopt), par.string))
+    },
+    after = function(envir = parent.frame()) {
+      return("Optimization terminated.")
+    }
+  )
+}
+
 #' @title Generator for visualizing monitor.
 #'
 #' @description This generator visualizes the optimization process for two-dimensional functions
