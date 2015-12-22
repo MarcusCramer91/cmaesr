@@ -86,9 +86,6 @@ cmaes = function(
 	par.set = getParamSet(objective.fun)
   lb = getLower(par.set); ub = getUpper(par.set)
 	n = getNumberOfParameters(objective.fun)
-	
-	#result
-	result = character(0)
 
 	# sanity checks
 	if (isNoisy(objective.fun)) {
@@ -138,10 +135,6 @@ cmaes = function(
   sigma = getCMAESParameter(control, "sigma", 0.5)
   assertNumber(sigma, lower = 0L, finite = TRUE)
 
-	# path for covariance matrix C and stepsize sigma
-	p.c = rep(0, n)
-  p.sigma = rep(0, n)
-
   # Precompute E||N(0,I)||
 	chi.n = sqrt(n) * (1 - 1 / (4 * n) + 1 / (21 * n^2))
 
@@ -154,16 +147,13 @@ cmaes = function(
 
   # logs
   population.trace = list()
-  # ======================================== added ====================================
-  generation.fitness = list()
-  # ======================================== added ====================================
 
   # init some termination criteria stuff
 	iter = 0L
   n.evals = 0L
 	start.time = Sys.time()
 
-	result = c(result, callMonitor(monitor, "before"))
+	callMonitor(monitor, "before")
 
   # somehow dirty trick to "really quit" if stopping condition is met and
   # now more restart should be triggered.
@@ -183,8 +173,11 @@ cmaes = function(
       mu = floor(lambda / 2)
     }
 
+    # path for covariance matrix C and stepsize sigma
+    pc = rep(0, n)
+    ps = rep(0, n)
+
     # initialize recombination weights
-    # assign higher weights to better solutions
     weights = getCMAESParameter(control, "weights", log(mu + 0.5) - log(1:mu))
     if (any(weights < 0)) {
       stopf("All weights need to be positive, but there are %i negative ones.", sum(which(weights < 0)))
@@ -198,22 +191,22 @@ cmaes = function(
     mu.eff = sum(weights)^2 / sum(weights^2) # chosen such that mu.eff ~ lambda/4
 
     # step-size control
-    c.sigma = (mu.eff + 2) / (n + mu.eff + 5)
-    damps = 1 + 2 * max(0, sqrt((mu.eff - 1) / (n + 1)) - 1) + c.sigma
+    cs = (mu.eff + 2) / (n + mu.eff + 5)
+    ds = 1 + 2 * max(0, sqrt((mu.eff - 1) / (n + 1)) - 1) + cs # damping factor
 
     # covariance matrix adaption parameters
-    c.c = (4 + mu.eff / n) / (n + 4 + 2 * mu.eff / n)
-    c.1 = 2 / ((n + 1.3)^2 + mu.eff)
+    cc = (4 + mu.eff / n) / (n + 4 + 2 * mu.eff / n)
+    c1 = 2 / ((n + 1.3)^2 + mu.eff)
     alpha.mu = 2L
-    c.mu = min(1 - c.1, alpha.mu * (mu.eff - 2 + 1/mu.eff) / ((n + 2)^2 + mu.eff))
+    cmu = min(1 - c1, alpha.mu * (mu.eff - 2 + 1/mu.eff) / ((n + 2)^2 + mu.eff))
 
     # covariance matrix
     sigma = getCMAESParameter(control, "sigma", 0.5)
-    B = diag(n) 
-    D = diag(n) #not needed?
-    BD = B %*% D #not needed?
-    C = BD %*% t(BD) # C = B D^2 B^T = B B^T, since D equals I_n #not needed?
-    Cinvsqrt = B %*% diag(1 / sqrt(diag(D))) %*% t(B) #not needed?
+    B = diag(n)
+    D = diag(n)
+    BD = B %*% D
+    C = BD %*% t(BD) # C = B D^2 B^T = B B^T, since D equals I_n
+    Cinvsqrt = B %*% diag(1 / sqrt(diag(D))) %*% t(B)
 
     # no restart trigger fired until now
     restarting = FALSE
@@ -224,24 +217,27 @@ cmaes = function(
       iter = iter + 1L
 
       # create new population of search points
-  		z = matrix(rnorm(n * lambda), ncol = lambda)
-      y = BD %*% z # ~ N(0, C) #same as z in first iteration, creates a normal distribution according to z
-      x = m + sigma * y # ~ N(m, sigma^2 C)
-      
-      #check if boundaries are passed
-      for (i in 1:n) {
-        for(j in 1:ncol(x)) {
-          if (x[i,j] < lb[i]) x[i,j] = lb[i]
-          if (x[i,j] > ub[i]) x[i,j] = ub[i]
-        }
+  		arz = matrix(rnorm(n * lambda), ncol = lambda) # ~ N(0, I)
+      ary = BD %*% arz # ~ N(0, C)
+      arx = m + sigma * ary # ~ N(m, sigma^2 C)
+
+      # Here we apply a penalization of violated bounds
+      arx.repaired = ifelse(arx < lb, lb, ifelse(arx > ub, ub, arx))
+
+      # Prepare penalization based on distance to repaired points (see Eq. 51)
+      penalty.alpha = 1L
+      penalties = penalty.alpha * colSums((arx - arx.repaired)^2)
+      penalties[is.infinite(penalties)] = .Machine$double.max / 2
+
+      # compute fitness values of repaired points
+      fitn.repaired = if (isVectorized(objective.fun)) {
+        objective.fun(arx.repaired)
+      } else {
+        apply(arx.repaired, 2L, function(x) objective.fun(x))
       }
 
-      # compute fitness values (each idividual is a column of x)
-      fitn = if (isVectorized(objective.fun)) {
-        objective.fun(x)
-      } else {
-        apply(x, 2L, function(xx) objective.fun(xx))
-      }
+      # apply penalization (see Eq. 51)
+      fitn = fitn.repaired + penalties
 
       # update evaluation
   		n.evals = n.evals + lambda
@@ -250,60 +246,56 @@ cmaes = function(
       fitn.ordered.idx = order(fitn, decreasing = FALSE)
       fitn.ordered = fitn[fitn.ordered.idx]
 
-
-      # lambda best individuals
-      fitn.best = fitn.ordered[1:mu]
-
       # update best solution so far
-      if (fitn.ordered[1L] < best.fitness) {
-        best.fitness = fitn.ordered[1L]
-        best.param = x[, fitn.ordered.idx[1L], drop = TRUE]
+      valid = (penalties <= 1)
+      if (any(valid)) {
+        min.valid.idx = which.min(fitn.repaired[valid])
+        if (fitn.repaired[valid][min.valid.idx] < best.fitness) {
+          best.fitness = fitn.repaired[valid][min.valid.idx]
+          best.param = arx[, valid, drop = FALSE][, min.valid.idx]
+        }
       }
 
       # update mean value / center of mass
       new.pop.idx = fitn.ordered.idx[1:mu]
-      x.best = x[, new.pop.idx]
+      x.best = arx[, new.pop.idx, drop = FALSE]
       m.old = m
       m = drop(x.best %*% weights)
 
-      #FIXME: do we really need y.w and z.w as variables?
-      y.best = y[, new.pop.idx]
+      y.best = ary[, new.pop.idx, drop = FALSE]
       y.w = drop(y.best %*% weights)
-      z.best = z[, new.pop.idx]
+      z.best = arz[, new.pop.idx, drop = FALSE]
       z.w = drop(z.best %*% weights)
 
       # log population
-      population.trace[[iter]] = z.best
-      # ======================================== added ====================================
-      generation.fitness[[iter]] = best.fitness
-      # ======================================== added ====================================
+      population.trace[[iter]] = x.best
 
   		# Update evolution path with cumulative step-size adaption (CSA) / path length control
       # For an explanation of the last factor see appendix A in https://www.lri.fr/~hansen/cmatutorial.pdf
-      p.sigma = (1 - c.sigma) * p.sigma + sqrt(c.sigma * (2 - c.sigma) * mu.eff) * (Cinvsqrt %*% y.w)
-  		h.sigma = as.integer(norm(p.sigma) / sqrt(1 - (1 - c.sigma)^(2 * (iter + 1))) < chi.n * (1.4 + 2 / (n + 1)))
+      ps = (1 - cs) * ps + sqrt(cs * (2 - cs) * mu.eff) * (Cinvsqrt %*% y.w)
+  		h.sigma = as.integer(norm2(ps) / sqrt(1 - (1 - cs)^(2 * (iter + 1))) < chi.n * (1.4 + 2 / (n + 1)))
 
   		# Update covariance matrix
-      p.c = (1 - c.c) * p.c + h.sigma * sqrt(c.c * (2 - c.c) * mu.eff) * y.w
+      pc = (1 - cc) * pc + h.sigma * sqrt(cc * (2 - cc) * mu.eff) * y.w
       y = BD %*% z.best
-      delta.h.sigma = as.numeric((1 - h.sigma) * c.c * (2 - c.c) <= 1)
-  		C = (1 - c.1 - c.mu) * C + c.1 * (p.c %*% t(p.c) + delta.h.sigma * C) + c.mu * y %*% diag(weights) %*% t(y)
+      delta.h.sigma = as.numeric((1 - h.sigma) * cc * (2 - cc) <= 1)
+  		C = (1 - c1 - cmu) * C + c1 * (pc %*% t(pc) + delta.h.sigma * C) + cmu * y %*% diag(weights) %*% t(y)
 
       # Update step-size sigma
-      sigma = sigma * exp(c.sigma / damps * ((norm(p.sigma) / chi.n) - 1))
+      sigma = sigma * exp(cs / ds * ((norm2(ps) / chi.n) - 1))
 
       # Finally do decomposition C = B D^2 B^T
       e = eigen(C, symmetric = TRUE)
       B = e$vectors
       D = diag(sqrt(e$values))
       BD = B %*% D
-      C = BD %*% t(BD)
       Cinvsqrt = B %*% diag(1 / diag(D)) %*% t(B) # update C^-1/2
 
-      result = c(result, callMonitor(monitor, "step"))
+      callMonitor(monitor, "step")
+
       # escape flat fitness values
       if (fitn.ordered[1L] == fitn.ordered[ceiling(0.7 * lambda)]) {
-        sigma = sigma * exp(0.2 + c.sigma / damps)
+        sigma = sigma * exp(0.2 + cs / ds)
         if (!is.null(monitor)) {
           warningf("Flat fitness values; increasing mutation step-size. Consider reformulating the objective!")
         }
@@ -336,25 +328,20 @@ cmaes = function(
     }
   }
 
-  result = c(result, callMonitor(monitor, "after"))
-  
-  #if it is a string generating monitor, get the result string and return as only function result
-  
-  if (length(result) > 0) return(result)
-	else {
-	  makeS3Obj(
-  		par.set = par.set,
-  		best.param = best.param,
-  		best.fitness = best.fitness,
-  		n.evals = n.evals,
-  		past.time = as.integer(difftime(Sys.time(), start.time, units = "secs")),
-  		n.iters = iter - 1L,
-      n.restarts = run,
-      population.trace = population.trace,
-  		message = stop.obj$stop.msgs,
-  		classes = "cma_result"
-	  )
-	}
+  callMonitor(monitor, "after")
+
+	makeS3Obj(
+		par.set = par.set,
+		best.param = best.param,
+		best.fitness = best.fitness,
+		n.evals = n.evals,
+		past.time = as.integer(difftime(Sys.time(), start.time, units = "secs")),
+		n.iters = iter - 1L,
+    n.restarts = run,
+    population.trace = population.trace,
+		message = stop.obj$stop.msgs,
+		classes = "cma_result"
+	)
 }
 
 #' @export
