@@ -81,7 +81,9 @@ cmaes = function(
     )
   )) {
 	assertClass(objective.fun, "smoof_function")
-
+  print("First:")
+  print(control)
+  
 	# extract relevant data
 	par.set = getParamSet(objective.fun)
   lb = getLower(par.set); ub = getUpper(par.set)
