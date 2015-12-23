@@ -313,9 +313,6 @@ cmaes = function(
       # CHECK STOPPING CONDITIONS
       # =========================
       stop.obj = checkStoppingConditions(stop.ons)
-      print(paste("stop.obj$codes:", stop.obj$codes))
-      print(paste("restart.triggers:", restart.triggers))
-      print(paste("Max restarts:", max.restarts))
 
       n.stop.codes = length(stop.obj$codes)
       if (max.restarts > 0L && any(stop.obj$codes %in% restart.triggers)) {
