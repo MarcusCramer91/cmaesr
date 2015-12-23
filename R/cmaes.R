@@ -168,8 +168,9 @@ cmaes = function(
   # somehow dirty trick to "really quit" if stopping condition is met and
   # now more restart should be triggered.
   do.terminate = FALSE
-
+  restarts = -1
   for (run in 0:max.restarts) {
+    restarts = restarts + 1
     # population and offspring size
     if (run == 0) {
       lambda = getCMAESParameter(control, "lambda", 4L + floor(3 * log(n)))
@@ -337,6 +338,7 @@ cmaes = function(
   }
 
   result = c(result, callMonitor(monitor, "after"))
+  results = c(result, paste("-1", restarts))
   
   #if it is a string generating monitor, get the result string and return as only function result
   
