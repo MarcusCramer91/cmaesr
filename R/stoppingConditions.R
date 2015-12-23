@@ -245,6 +245,7 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
     message = sprintf("OCD successfully: Variance limit %f", varLimit),
     stop.fun = function(envir = parent.frame()) {
       # Check if the number of iterations exceeds the user-defined number of maxGen. If TRUE, stop cma-es
+      if(!is.null(envir$iter)){
       if(envir$iter >= maxGen){
         return(envir$iter >= maxGen)
       }
@@ -271,6 +272,7 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
       else{
         return(FALSE)
       }
+      }else{return(FALSE)}
     }
   ))
 }
