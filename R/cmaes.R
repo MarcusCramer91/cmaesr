@@ -338,7 +338,7 @@ cmaes = function(
   }
 
   result = c(result, callMonitor(monitor, "after"))
-  results = c(result, paste("-1", restarts))
+  result = c(result, paste("-1", restarts))
   
   #if it is a string generating monitor, get the result string and return as only function result
   
