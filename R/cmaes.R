@@ -74,7 +74,8 @@
 cmaes = function(
   objective.fun,
   start.point = NULL,
-	monitor = makeSimpleMonitor(),
+  monitor = makeSimpleMonitor(),
+  debug.logging = FALSE,
   control = list(
     stop.ons = c(
       getDefaultStoppingConditions()
@@ -312,6 +313,7 @@ cmaes = function(
 
       # CHECK STOPPING CONDITIONS
       # =========================
+      if(debug.logging == TRUE) write(stop.ons, file = "debug.txt")
       stop.obj = checkStoppingConditions(stop.ons)
 
       n.stop.codes = length(stop.obj$codes)
