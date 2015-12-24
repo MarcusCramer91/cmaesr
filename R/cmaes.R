@@ -148,6 +148,9 @@ cmaes = function(
 	# bookkeep best individual
 	best.param = rep(NA, n)
 	best.fitness = Inf
+	# ======================================== added ====================================
+	worst.fitness = Inf
+	# ======================================== added ====================================
 
   # set initial distribution mean
 	m = start.point
@@ -155,7 +158,8 @@ cmaes = function(
   # logs
   population.trace = list()
   # ======================================== added ====================================
-  generation.fitness = list()
+  generation.bestfitness = list()
+  generation.worstfitness = list()
   # ======================================== added ====================================
 
   # init some termination criteria stuff
@@ -260,7 +264,14 @@ cmaes = function(
         best.fitness = fitn.ordered[1L]
         best.param = x[, fitn.ordered.idx[1L], drop = TRUE]
       }
-
+      
+      # ======================================== added ====================================
+      # update worst solution so far
+      if (fitn.ordered[length(fitn.ordered)] < worst.fitness) {
+        worst.fitness = fitn.ordered[length(fitn.ordered)]
+      }
+      # ======================================== added ====================================
+      
       # update mean value / center of mass
       new.pop.idx = fitn.ordered.idx[1:mu]
       x.best = x[, new.pop.idx]
@@ -276,7 +287,10 @@ cmaes = function(
       # log population
       population.trace[[iter]] = z.best
       # ======================================== added ====================================
-      generation.fitness[[iter]] = best.fitness
+      # log best fitness value per generation
+      generation.bestfitness[[iter]] = best.fitness
+      # log worst fitness value oer generation
+      generation.worstfitness[[iter]] = worst.fitness
       # ======================================== added ====================================
 
   		# Update evolution path with cumulative step-size adaption (CSA) / path length control

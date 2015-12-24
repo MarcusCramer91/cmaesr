@@ -254,7 +254,7 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
         # PI_all is a vector with one entry for each generation. 
         # PI_all stores the difference between the performance indicator value of the preceding and the current generation.
         # Here: In single objective optimization, the performance indicator of interest is the best fitness value of each generation.
-        PI_all = rbind(envir$generation.fitness[[1]], cbind(unlist(envir$generation.fitness))) - rbind(cbind(unlist(envir$generation.fitness)), envir$best.fitness)
+        PI_all = rbind(envir$generation.bestfitness[[1]], cbind(unlist(envir$generation.bestfitness))) - rbind(cbind(unlist(envir$generation.bestfitness)), envir$best.fitness)
         # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
         PI_current_gen = PI_all[(envir$iter-nPreGen):envir$iter]
         if((envir$iter - nPreGen) > 1){
