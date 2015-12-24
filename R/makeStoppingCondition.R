@@ -47,6 +47,9 @@ checkStoppingConditions = function(stop.ons, envir = parent.frame()) {
   stop.msgs = character(0L)
   codes = character(0L)
   for (stop.on in stop.ons) {
+    #used for debugging
+    #in some rare cases this seems to not return a Boolean value
+    if (!is.logical(shouldStop)) write(collapse(stop.on), file = "stoppingCondDebugging.txt")
     if (shouldStop(stop.on, envir = envir)) {
       stop.msgs = c(stop.msgs, stop.on$message)
       codes = c(codes, stop.on$code)

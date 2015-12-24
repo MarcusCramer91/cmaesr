@@ -327,7 +327,7 @@ cmaes = function(
 
       # CHECK STOPPING CONDITIONS
       # =========================
-      if(debug.logging == TRUE) write(collapse(stop.ons), file = "debug.txt")
+      if(debug.logging == TRUE) write(collapse(stop.ons), file = "debug.txt", append = TRUE)
       stop.obj = checkStoppingConditions(stop.ons)
 
       n.stop.codes = length(stop.obj$codes)
