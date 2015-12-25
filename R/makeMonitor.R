@@ -233,7 +233,7 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
       # update last population
       last.x <<- x
       print(pl)
-      pause()
+      #pause()
     },
     after = function(envir = parent.frame()) {}
   )

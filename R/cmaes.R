@@ -136,14 +136,19 @@ cmaes = function(
   assertInt(max.restarts)
 
   #FIXME: default value should be derived from bounds
-  sigma = getCMAESParameter(control, "sigma", 0.5)
+  #sigma = overall standard deviation, step size at generation g
+  sigma = getCMAESParameter(control, "sigma", 0.5) #redundant at this point?
   assertNumber(sigma, lower = 0L, finite = TRUE)
 
 	# path for covariance matrix C and stepsize sigma
-	p.c = rep(0, n)
-  p.sigma = rep(0, n)
+	p.c = rep(0, n) #initial evolution path constructed through exponential smoothing (exptected length depends on its direction)
+	#redundant at this point?
+  p.sigma = rep(0, n) #conjugate evolution path; redundant at this point?
 
   # Precompute E||N(0,I)||
+  # Expected value of norm(0, I)
+  # For n = 10 3.084727
+  # Used to update p.c later
 	chi.n = sqrt(n) * (1 - 1 / (4 * n) + 1 / (21 * n^2))
 
 	# bookkeep best individual
@@ -178,8 +183,10 @@ cmaes = function(
     restarts = restarts + 1
     # population and offspring size
     if (run == 0) {
+      #population
       lambda = getCMAESParameter(control, "lambda", 4L + floor(3 * log(n)))
       assertInt(lambda, lower = 4)
+      #part of the population used for the update
       mu = getCMAESParameter(control, "mu", floor(lambda / 2))
       assertInt(mu)
     } else {
@@ -204,17 +211,17 @@ cmaes = function(
     mu.eff = sum(weights)^2 / sum(weights^2) # chosen such that mu.eff ~ lambda/4
 
     # step-size control
-    c.sigma = (mu.eff + 2) / (n + mu.eff + 5)
-    damps = 1 + 2 * max(0, sqrt((mu.eff - 1) / (n + 1)) - 1) + c.sigma
+    c.sigma = (mu.eff + 2) / (n + mu.eff + 5) #used to update the conjugate evolution path p.sigma
+    damps = 1 + 2 * max(0, sqrt((mu.eff - 1) / (n + 1)) - 1) + c.sigma #damping for sigma
 
     # covariance matrix adaption parameters
-    c.c = (4 + mu.eff / n) / (n + 4 + 2 * mu.eff / n)
-    c.1 = 2 / ((n + 1.3)^2 + mu.eff)
-    alpha.mu = 2L
-    c.mu = min(1 - c.1, alpha.mu * (mu.eff - 2 + 1/mu.eff) / ((n + 2)^2 + mu.eff))
+    c.c = (4 + mu.eff / n) / (n + 4 + 2 * mu.eff / n) #time constant for cumulation for C
+    c.1 = 2 / ((n + 1.3)^2 + mu.eff) #learning rate for rank-one update of C
+    alpha.mu = 2L #?
+    c.mu = min(1 - c.1, alpha.mu * (mu.eff - 2 + 1/mu.eff) / ((n + 2)^2 + mu.eff)) #learning rate for rank-mu update
 
     # covariance matrix
-    sigma = getCMAESParameter(control, "sigma", 0.5)
+    sigma = getCMAESParameter(control, "sigma", 0.5) #already done above
     B = diag(n) 
     D = diag(n) #not needed?
     BD = B %*% D #not needed?
