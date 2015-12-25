@@ -220,8 +220,9 @@ makeVisualizingMonitor = function(show.last = FALSE, show.distribution = TRUE,
       pl = pl + stat_contour(aes_string(z = "z", fill = NULL), colour = "gray", alpha = I(0.8))
 
       # ... and decorate with the points
-      pl = pl + geom_point(data = df, aes_string(x = "x1", y = "x2", colour = "Type"))
+      pl = pl + geom_point(data = df, aes_string(x = "x1", y = "x2", colour = "Type", size = 2))
       pl = pl + theme(legend.position = "bottom")
+      pl = pl + ggtitle(paste("Iteration:", envir$iter))
 
       # show ellipsis of normal distribution
       if (show.distribution) {
