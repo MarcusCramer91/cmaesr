@@ -57,7 +57,7 @@ checkStoppingConditions = function(stop.ons, envir = parent.frame()) {
     if (!is.logical(shouldStop(stop.on, envir = envir)) | 
         is.null(shouldStop(stop.on, envir = envir)) | 
         is.na(shouldStop(stop.on, envir = envir))) {
-      write(stop.on, file = "debugging.txt")
+      write(collapse(stop.on), file = "debugging.txt")
       stop.msgs = c(stop.msgs, stop.on$message)
       codes = c(codes, stop.on$code)
     }
