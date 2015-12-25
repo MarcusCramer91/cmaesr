@@ -218,7 +218,7 @@ stopOnCondCov = function(tol = 1e14) {
         return(kappa(envir$C) > tol)
       },
       error = function(e) {
-        print(collapse(C))
+        print(collapse(envir$C))
       },
       finally = {
         
