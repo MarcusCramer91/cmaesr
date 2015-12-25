@@ -243,30 +243,55 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
   alpha = 0.05
   # Check if maxGen is a single integerish value
   assertInt(maxGen, na.ok = FALSE)
+  # initialize p-values of Chi-squared variance test
+  pvalue_current_gen_chi = numeric()
+  pvalue_preceding_gen_chi = numeric()
+  # initialize p-values of the t-test on the regression coefficient
+  pvalue_current_gen_t = numeric()
+  pvalue_preceding_gen_t = numeric()
+  # initializa lower and upper bound vector needed for normalization
+  lb = numeric()
+  ub = numeric()
   # return stopping condition being compatible with cma-es implementation by Jakob Bossek
   return(makeStoppingCondition(
     name = "Online Convergence Detection",
     message = sprintf("OCD successfully: Variance limit %f", varLimit),
     stop.fun = function(envir = parent.frame()) {
+      # get lower bound from generation.worstfitness, i.e. the worst fitness value over all generations i
+      lb = max (unlist(envir$generation.worstfitness))
+      #print(lb)
+      #print(unlist(envir$generation.worstfitness))
+      # get upper bound from generation.bestfitness, i.e. the best fitness fitness value over all generations i
+      ub = min (unlist(envir$generation.bestfitness))
+      #print(ub)
       # Check if the number of iterations exceeds the user-defined number of maxGen. If TRUE, stop cma-es
-
+      #print(unlist(envir$generation.bestfitness))
+      #print(envir$iter)
       if(envir$iter >= maxGen){
         return(envir$iter >= maxGen)
       }
       # Check if number of iterations is greater than user-defined nPreGen
       if(envir$iter > nPreGen){
+        # normalize ...
+        
         # PI_all is a vector with one entry for each generation. 
         # PI_all stores the difference between the performance indicator value of the preceding and the current generation.
         # Here: In single objective optimization, the performance indicator of interest is the best fitness value of each generation.
-        PI_all = rbind(envir$generation.bestfitness[[1]], cbind(unlist(envir$generation.bestfitness))) - rbind(cbind(unlist(envir$generation.bestfitness)), envir$best.fitness)
+        PI_all = abs(unlist(envir$generation.bestfitness)[-1] - unlist(envir$generation.bestfitness)[-length(envir$generation.bestfitness)])
+        #PI_all = rbind(envir$generation.bestfitness[[1]], cbind(unlist(envir$generation.bestfitness))) - rbind(cbind(unlist(envir$generation.bestfitness)), envir$best.fitness)
+        #print(PI_all)
         # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
-        PI_current_gen = PI_all[(envir$iter-nPreGen):envir$iter]
-        if((envir$iter - nPreGen) > 1){
+        #PI_current_gen = PI_all[(envir$iter-nPreGen):envir$iter]
+        #print(envir$iter-nPreGen)
+        PI_current_gen = PI_all[(envir$iter-nPreGen):(envir$iter -1)]
+        if((envir$iter - nPreGen) <= 1){
           # PI_preceding_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the last generation i-1.
-          PI_preceding_gen =  PI_all[(envir$iter - (nPreGen+1)):(envir$iter - 1)]
-        }else{
           PI_preceding_gen = PI_current_gen
+        }else{
+          PI_preceding_gen =  PI_all[(envir$iter - (nPreGen+1)):(envir$iter - 2)]
         }
+        #print(PI_current_gen)
+        #print(PI_preceding_gen)
         # perform chi2 variance tests and return corresponding p-values
         pvalue_current_gen = pChi2(varLimit, PI_current_gen)
         pvalue_preceding_gen = pChi2(varLimit, PI_preceding_gen)
