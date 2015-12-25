@@ -195,6 +195,12 @@ cmaes = function(
       lambda = ceiling(restart.multiplier^run * lambda)
       mu = floor(lambda / 2)
     }
+    
+    #limit population to 1000
+    if (lambda > 1000) {
+      lambda = 1000
+      mu = 500
+    }
 
     # initialize recombination weights
     # assign higher weights to better solutions
