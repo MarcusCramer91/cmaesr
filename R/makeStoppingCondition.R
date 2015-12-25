@@ -58,7 +58,8 @@ checkStoppingConditions = function(stop.ons, envir = parent.frame()) {
         is.null(shouldStop(stop.on, envir = envir)) | 
         is.na(shouldStop(stop.on, envir = envir))) {
       write(collapse(stop.on), file = "debugging.txt", append = TRUE)
-      write(paste("iter:", envir$iter, "n:", envir$n, "ui:", envir$e$vectors[, ii], "lambdai:", sqrt(envir$e$values[ii]), "m.old:", envir$m.old,
+      write(paste("iter:", envir$iter, "n:", envir$n, "ui:", envir$e$vectors[, (envir$iter %% envir$n) + 1L], 
+                  "lambdai:", sqrt(envir$e$values[ii]), "m.old:", envir$m.old,
                   "sigma:", envir$sigma), file = "detaildebugging.txt", append = TRUE)
       stop.msgs = c(stop.msgs, stop.on$message)
       codes = c(codes, stop.on$code)
