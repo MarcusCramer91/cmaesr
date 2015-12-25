@@ -169,6 +169,7 @@ stopOnNoEffectAxis = function() {
     stop.fun = function(envir = parent.frame()) {
       ii = (envir$iter %% envir$n) + 1L
       ui = envir$e$vectors[, ii]
+      if (any(ui < 0)) return(TRUE)
       lambdai = sqrt(envir$e$values[ii])
       m.old = envir$m.old
       return(sum((m.old - (m.old + 0.1 * envir$sigma * lambdai * ui))^2) < .Machine$double.eps)
