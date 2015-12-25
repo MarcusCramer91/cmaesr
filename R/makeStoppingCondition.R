@@ -58,7 +58,7 @@ checkStoppingConditions = function(stop.ons, envir = parent.frame()) {
       stop.msgs = c(stop.msgs, stop.on$message)
       codes = c(codes, stop.on$code)
     }
-    else if (shouldStop(stop.on, envir = envir)) {
+    else if (shouldStop(stop.on, envir = envir) == TRUE) {
       stop.msgs = c(stop.msgs, stop.on$message)
       codes = c(codes, stop.on$code)
     }
