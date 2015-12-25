@@ -53,7 +53,12 @@ checkStoppingConditions = function(stop.ons, envir = parent.frame()) {
     #                                   append = TRUE)
     #write(paste("StopCond:", stop.on$name, "return value:", shouldStop(stop.on, envir = envir)), file = "stoppingCondDebugging.txt",
     #                                         append = TRUE)
-    if (shouldStop(stop.on, envir = envir)) {
+    #catch the case where shouldStop returns no value
+    if (!is.logical(shouldStop(stop.on, envir = envir))) {
+      stop.msgs = c(stop.msgs, stop.on$message)
+      codes = c(codes, stop.on$code)
+    }
+    else if (shouldStop(stop.on, envir = envir)) {
       stop.msgs = c(stop.msgs, stop.on$message)
       codes = c(codes, stop.on$code)
     }
