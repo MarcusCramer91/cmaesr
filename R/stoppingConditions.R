@@ -214,8 +214,15 @@ stopOnCondCov = function(tol = 1e14) {
     message = sprintf("Condition number of covariance matrix exceeds %f", tol),
     stop.fun = function(envir = parent.frame()) {
       #C = covmat
-      if (any(is.na(C) | is.nan(C) | is.infinite(C)) == TRUE) write(paste("Covmat:", collapse(C), file = "stoppingCondDebugging.txt"))
-      return(kappa(envir$C) > tol)
+      tryCatch({
+        return(kappa(envir$C) > tol)
+      },
+      error = function(e) {
+        print(collapse(C))
+      },
+      finally = {
+        
+      })
     }
   ))
 }
