@@ -339,13 +339,21 @@ cmaes = function(
       }
       
       # normalization for OCD
-      if ("Online Convergence Detection" %in% stop.ons.names) {
+      if ("OCD" %in% stop.ons.names) {
+        stopped.on.t = 0
+        stopped.on.chi = 0
         param.set = sapply(stop.ons, function(stop.on) stop.on$param.set)
+        # log termination condition for each iteration
+        # define upper and lower bound for normalization.
+        # bounds are fixed once nPreGen generations are reached.
         if(iter == param.set[[2]]){
-          upper.bound = max (unlist(generation.worstfitness))
-          lower.bound = min (unlist(generation.bestfitness))
+          upper.bound = max(unlist(generation.worstfitness))
+          lower.bound = min(unlist(generation.bestfitness))
         }
       }
+      
+
+      
       
       # CHECK STOPPING CONDITIONS
       
@@ -378,6 +386,9 @@ cmaes = function(
 
   result = c(result, callMonitor(monitor, "after"))
   result = c(result, paste("-1", restarts))
+  result = c(result, paste("-2", stopped.on.t))
+  result = c(result, paste("-3", stopped.on.chi))
+
   
   #if it is a string generating monitor, get the result string and return as only function result
   

@@ -252,7 +252,7 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
   pvalue_preceding_gen_t = numeric()
   # return stopping condition being compatible with cma-es implementation by Jakob Bossek
   return(makeStoppingCondition(
-    name = "Online Convergence Detection",
+    name = "OCD",
     message = sprintf("OCD successfully: Variance limit %f", varLimit),
     param.set = list(varLimit, nPreGen, maxGen),
     stop.fun = function(envir = parent.frame()) {
@@ -286,6 +286,7 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
         # perform two-sided t-test and return corresponding p-values
         pvalue_current_gen_t = pReg(PI_current_gen)
         pvalue_preceding_gen_t = pReg(PI_preceding_gen)
+       
         # log termination condition in cma_es
         if (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha) envir$stopped.on.chi = envir$stopped.on.chi + 1
         if (pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha) envir$stopped.on.t = envir$stopped.on.t + 1
@@ -316,7 +317,7 @@ pReg <- function (PI) {
   N = length(PI)-1
   # standardize PI
   if(all(PI==0)) {
-    PI = return (1)
+    return (1)
   }else{
     PI = (PI-mean(PI))/sd(PI)
   }
