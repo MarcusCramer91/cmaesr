@@ -274,16 +274,15 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
       # Check if number of iterations is greater than user-defined nPreGen
       if(envir$iter > nPreGen){
         # normalize ...
+        # Here: In single objective optimization, the indicator of interest is the best fitness value of each generation.
+        # PF_i is the best fitness value of the i-th generation which is used as a reference value
+        # for calculating the indicator values of the last nPreGen generations
+        PF_i = envir$best.fitness
+        # PI_all is a vector with one entry for each generation.
+        # PI_all stores the difference between the performance indicator values of the last nPreGen generations and the current generation i.
         
-        # PI_all is a vector with one entry for each generation. 
-        # PI_all stores the difference between the performance indicator value of the preceding and the current generation.
-        # Here: In single objective optimization, the performance indicator of interest is the best fitness value of each generation.
-        PI_all = abs(unlist(envir$generation.bestfitness)[-1] - unlist(envir$generation.bestfitness)[-length(envir$generation.bestfitness)])
-        #PI_all = rbind(envir$generation.bestfitness[[1]], cbind(unlist(envir$generation.bestfitness))) - rbind(cbind(unlist(envir$generation.bestfitness)), envir$best.fitness)
-        #print(PI_all)
+        PI_all = sapply((envir$generation.bestfitness)[-length(envir$generation.bestfitness)], function(x) x-PF_i, simplify = TRUE)
         # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
-        #PI_current_gen = PI_all[(envir$iter-nPreGen):envir$iter]
-        #print(envir$iter-nPreGen)
         PI_current_gen = PI_all[(envir$iter-nPreGen):(envir$iter -1)]
         if((envir$iter - nPreGen) <= 1){
           # PI_preceding_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the last generation i-1.
@@ -291,8 +290,7 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
         }else{
           PI_preceding_gen =  PI_all[(envir$iter - (nPreGen+1)):(envir$iter - 2)]
         }
-        #print(PI_current_gen)
-        #print(PI_preceding_gen)
+
         # perform chi2 variance tests and return corresponding p-values
         pvalue_current_gen = pChi2(varLimit, PI_current_gen)
         pvalue_preceding_gen = pChi2(varLimit, PI_preceding_gen)
