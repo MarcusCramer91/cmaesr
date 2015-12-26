@@ -166,8 +166,14 @@ cmaes = function(
   # ======================================== added ====================================
   generation.bestfitness = list()
   generation.worstfitness = list()
+  
+  # normalization for OCD
+  if ("Online Convergence Detection" %in% stop.ons.names) {
+    param.set = sapply(stop.ons, function(stop.on) stop.on$param.set)
+    names = stop.ons.names
+  }
   # ======================================== added ====================================
-
+  
   # init some termination criteria stuff
 	iter = 0L
   n.evals = 0L

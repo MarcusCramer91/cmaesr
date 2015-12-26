@@ -18,19 +18,23 @@
 #'   Control params.
 #' @return [\code{cma_stopping_condition}] Stopping condition object.
 #' @export
-makeStoppingCondition = function(name, message, stop.fun, code = name, control = list()) {
+makeStoppingCondition = function(name, message, stop.fun, code = name, control = list(), param.set = NA) {
   assertString(name, na.ok = FALSE)
   assertString(message, na.ok = FALSE)
   assertFunction(stop.fun, args = "envir")
   assertString(code, na.ok = FALSE)
   assertList(control)
+  # added ....
+  assertList(param.set)
   makeS3Obj(
     name = name,
     message = message,
     stop.fun = stop.fun,
     code = code,
     control = control,
-    classes = "cma_stopping_condition"
+    classes = "cma_stopping_condition",
+    # added ... 
+    param.set = param.set
   )
 }
 
