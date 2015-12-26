@@ -50,24 +50,7 @@ checkStoppingConditions = function(stop.ons, envir = parent.frame()) {
   stop.msgs = character(0L)
   codes = character(0L)
   for (stop.on in stop.ons) {
-    #used for debugging
-    #in some rare cases this seems to not return a Boolean value
-    #if (!is.logical(shouldStop)) write(paste("StopCond does not return a logical value:", stop.on$name), file = "stoppingCondDebugging.txt",
-    #                                   append = TRUE)
-    #write(paste("StopCond:", stop.on$name, "return value:", shouldStop(stop.on, envir = envir)), file = "stoppingCondDebugging.txt",
-    #                                         append = TRUE)
-    #catch the case where shouldStop returns no value
-    if (!is.logical(shouldStop(stop.on, envir = envir)) | 
-        is.null(shouldStop(stop.on, envir = envir)) | 
-        is.na(shouldStop(stop.on, envir = envir))) {
-      write(collapse(stop.on), file = "debugging.txt", append = TRUE)
-      write(paste("iter:", envir$iter, "n:", envir$n, "ui:", envir$e$vectors[, ((envir$iter %% envir$n) + 1L)], 
-                  "lambdai:", sqrt(envir$e$values[((envir$iter %% envir$n) + 1L)]), "m.old:", envir$m.old,
-                  "sigma:", envir$sigma), file = "detaildebugging.txt", append = TRUE)
-      stop.msgs = c(stop.msgs, stop.on$message)
-      codes = c(codes, stop.on$code)
-    }
-    else if (shouldStop(stop.on, envir = envir) == TRUE) {
+    if (shouldStop(stop.on, envir = envir)) {
       stop.msgs = c(stop.msgs, stop.on$message)
       codes = c(codes, stop.on$code)
     }
