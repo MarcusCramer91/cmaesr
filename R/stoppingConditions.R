@@ -286,8 +286,6 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
         # perform two-sided t-test and return corresponding p-values
         pvalue_current_gen_t = pReg(PI_current_gen)
         pvalue_preceding_gen_t = pReg(PI_preceding_gen)
-        print(pvalue_current_gen_t)
-        print(pvalue_preceding_gen_t)
         # return TRUE, i.e. stop cmaes exectuion, if p-value is below specified significance level alpha
         return (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha || pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha)
       }
