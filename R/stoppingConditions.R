@@ -257,6 +257,7 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
   return(makeStoppingCondition(
     name = "Online Convergence Detection",
     message = sprintf("OCD successfully: Variance limit %f", varLimit),
+    param.set = list(varLimit, nPreGen, maxGen),
     stop.fun = function(envir = parent.frame()) {
       # get lower bound from generation.worstfitness, i.e. the worst fitness value over all generations i
       lb = max (unlist(envir$generation.worstfitness))
@@ -281,6 +282,8 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
         # PI_all is a vector with one entry for each generation.
         # PI_all stores the difference between the performance indicator values of the last nPreGen generations and the current generation i.
         PI_all = sapply((envir$generation.bestfitness)[-length(envir$generation.bestfitness)], function(x) x-PF_i, simplify = TRUE)
+        print(envir$param.set)
+        print(envir$names)
         # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
         PI_current_gen = PI_all[(envir$iter-nPreGen):(envir$iter -1)]
         if((envir$iter - nPreGen) <= 1){
@@ -289,7 +292,6 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
         }else{
           PI_preceding_gen =  PI_all[(envir$iter - (nPreGen+1)):(envir$iter - 2)]
         }
-
         # perform chi2 variance tests and return corresponding p-values
         pvalue_current_gen = pChi2(varLimit, PI_current_gen)
         pvalue_preceding_gen = pChi2(varLimit, PI_preceding_gen)
