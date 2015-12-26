@@ -166,12 +166,6 @@ cmaes = function(
   # ======================================== added ====================================
   generation.bestfitness = list()
   generation.worstfitness = list()
-  
-  # normalization for OCD
-  if ("Online Convergence Detection" %in% stop.ons.names) {
-    param.set = sapply(stop.ons, function(stop.on) stop.on$param.set)
-    names = stop.ons.names
-  }
   # ======================================== added ====================================
   
   # init some termination criteria stuff
@@ -343,8 +337,18 @@ cmaes = function(
           warningf("Flat fitness values; increasing mutation step-size. Consider reformulating the objective!")
         }
       }
-
+      
+      # normalization for OCD
+      if ("Online Convergence Detection" %in% stop.ons.names) {
+        param.set = sapply(stop.ons, function(stop.on) stop.on$param.set)
+        if(iter == param.set[[2]]){
+          upper.bound = max (unlist(generation.worstfitness))
+          lower.bound = min (unlist(generation.bestfitness))
+        }
+      }
+      
       # CHECK STOPPING CONDITIONS
+      
       # =========================
       if(debug.logging == TRUE) write(collapse(stop.ons), file = "debug.txt", append = TRUE)
       stop.obj = checkStoppingConditions(stop.ons)

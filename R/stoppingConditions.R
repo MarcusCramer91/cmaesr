@@ -250,31 +250,18 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
   # initialize p-values of the t-test on the regression coefficient
   pvalue_current_gen_t = numeric()
   pvalue_preceding_gen_t = numeric()
-  # initializa lower and upper bound vector needed for normalization
-  lb = numeric()
-  ub = numeric()
   # return stopping condition being compatible with cma-es implementation by Jakob Bossek
   return(makeStoppingCondition(
     name = "Online Convergence Detection",
     message = sprintf("OCD successfully: Variance limit %f", varLimit),
     param.set = list(varLimit, nPreGen, maxGen),
     stop.fun = function(envir = parent.frame()) {
-      # get lower bound from generation.worstfitness, i.e. the worst fitness value over all generations i
-      lb = max (unlist(envir$generation.worstfitness))
-      #print(lb)
-      #print(unlist(envir$generation.worstfitness))
-      # get upper bound from generation.bestfitness, i.e. the best fitness fitness value over all generations i
-      ub = min (unlist(envir$generation.bestfitness))
-      #print(ub)
       # Check if the number of iterations exceeds the user-defined number of maxGen. If TRUE, stop cma-es
-      #print(unlist(envir$generation.bestfitness))
-      #print(envir$iter)
       if(envir$iter >= maxGen){
         return(envir$iter >= maxGen)
       }
       # Check if number of iterations is greater than user-defined nPreGen
       if(envir$iter > nPreGen){
-        # normalize ...
         # Here: In single objective optimization, the indicator of interest is the best fitness value of each generation.
         # PF_i is the best fitness value of the i-th generation which is used as a reference value
         # for calculating the indicator values of the last nPreGen generations
@@ -282,8 +269,9 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
         # PI_all is a vector with one entry for each generation.
         # PI_all stores the difference between the performance indicator values of the last nPreGen generations and the current generation i.
         PI_all = sapply((envir$generation.bestfitness)[-length(envir$generation.bestfitness)], function(x) x-PF_i, simplify = TRUE)
-        print(envir$param.set)
-        print(envir$names)
+        # normalize PI_all in range upper.bound - lower.bound, i.e. the range of the objective values after nPreGen generations.
+        # This value is fixed for all upcomming generations
+        PI_all = PI_all/(envir$upper.bound-envir$lower.bound)
         # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
         PI_current_gen = PI_all[(envir$iter-nPreGen):(envir$iter -1)]
         if((envir$iter - nPreGen) <= 1){
@@ -293,10 +281,15 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
           PI_preceding_gen =  PI_all[(envir$iter - (nPreGen+1)):(envir$iter - 2)]
         }
         # perform chi2 variance tests and return corresponding p-values
-        pvalue_current_gen = pChi2(varLimit, PI_current_gen)
-        pvalue_preceding_gen = pChi2(varLimit, PI_preceding_gen)
+        pvalue_current_gen_chi = pChi2(varLimit, PI_current_gen)
+        pvalue_preceding_gen_chi = pChi2(varLimit, PI_preceding_gen)
+        # perform two-sided t-test and return corresponding p-values
+        pvalue_current_gen_t = pReg(PI_current_gen)
+        pvalue_preceding_gen_t = pReg(PI_preceding_gen)
+        print(pvalue_current_gen_t)
+        print(pvalue_preceding_gen_t)
         # return TRUE, i.e. stop cmaes exectuion, if p-value is below specified significance level alpha
-        return (pvalue_current_gen <= alpha && pvalue_preceding_gen <= alpha)
+        return (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha || pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha)
       }
       else{
         return(FALSE)
@@ -315,5 +308,31 @@ pChi2 <- function (varLimit, PI) {
   # get p-value of corresponding chi2 test
   p = pchisq(Chi, N, lower.tail = TRUE)
   return (p)
+}
+
+pReg <- function (PI) {
+  # Determin degrees of freedom
+  N = length(PI)-1
+  # standardize PI
+  if(all(PI==0)) {
+    PI = return (1)
+  }else{
+    PI = (PI-mean(PI))/sd(PI)
+  }
+  # initialize X, i.e. a vector of the generations of PI
+  X = seq(1,length(PI),1)
+  # standardize X
+  X = (X-mean(X))/sd(X)
+  # linear regression without intercept
+  beta = (solve(X%*%X))%*%(X%*%PI)
+  # residuals
+  residuals = PI - X*beta
+  # mse
+  mse = (residuals%*%residuals) / N
+  # compute test statistic
+  t = beta/sqrt(mse*solve(X%*%X))
+  # look up t distribution for N degrees of freedom
+  p_value = 2*pt(-abs(t), df=length(data)-1)
+  return (p_value)
 }
 
