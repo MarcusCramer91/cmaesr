@@ -388,8 +388,8 @@ cmaes = function(
   result = c(result, callMonitor(monitor, "after"))
   result = c(result, paste("-1", restarts))
   if ("OCD" %in% stop.ons.names) {
-  #result = c(result, paste("-2", stopped.on.t))
-  #result = c(result, paste("-3", stopped.on.chi))
+  result = c(result, paste("-2", stopped.on.t))
+  result = c(result, paste("-3", stopped.on.chi))
 }
   
   #if it is a string generating monitor, get the result string and return as only function result
