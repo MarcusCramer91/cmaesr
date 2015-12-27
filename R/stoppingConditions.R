@@ -234,7 +234,7 @@ stopOnCondCov = function(tol = 1e14) {
 #' @return [\code{cma_stopping_condition}]
 #' @family stopping conditions
 #' @export
-stopOnOCD = function(varLimit, nPreGen)
+stopOnOCD = function(varLimit, nPreGen,maxGen = NULL)
 {
   # Check if varLimit is a single numeric
   assertNumber(varLimit, na.ok = FALSE)
@@ -243,7 +243,11 @@ stopOnOCD = function(varLimit, nPreGen)
   # initialize significane level alpha with default value 0.05
   alpha = 0.05
   # Check if maxGen is a single integerish value
-  # assertInt(maxGen, na.ok = FALSE)
+  if(!is.null(maxGen)) {
+    assertInt(maxGen, na.ok = FALSE)
+  }else{
+    maxGen = Inf
+  }
   # initialize p-values of Chi-squared variance test
   pvalue_current_gen_chi = numeric()
   pvalue_preceding_gen_chi = numeric()
@@ -258,9 +262,9 @@ stopOnOCD = function(varLimit, nPreGen)
     stop.fun = function(envir = parent.frame()) {
       # Check if the number of iterations exceeds the user-defined number of maxGen. If TRUE, stop cma-es
       
-      #if(envir$iter >= maxGen){
-      #  return(envir$iter >= maxGen)
-      #}
+      if(envir$iter >= maxGen){
+        return(envir$iter >= maxGen)
+      }
       
       # Check if number of iterations is greater than user-defined nPreGen
       if(envir$iter > nPreGen){
@@ -295,12 +299,9 @@ stopOnOCD = function(varLimit, nPreGen)
         # return TRUE, i.e. stop cmaes exectuion, if p-value is below specified significance level alpha
         return (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha || pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha)
       }
-      
       else{
         return(FALSE)
-      
       }
-
     }
   ))
 }
