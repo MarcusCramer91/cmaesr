@@ -338,14 +338,15 @@ cmaes = function(
         }
       }
       
-      # normalization for OCD
+      # normalization and logging functionality for OCD
       if ("OCD" %in% stop.ons.names) {
+        # initialize stopped.on.t and stopped.on.chi that indicate the type of test which caused the termination of cma-es.
+        # the stopping condition "stopOnOCD" sets the corresponding variable to "1" if that specific test has been significant.
         stopped.on.t = 0
         stopped.on.chi = 0
+        # get the call parameters from OCD needed for normalization
         param.set = stop.ons[[grep("OCD",stop.ons)]]$param.set
-        
-        # log termination condition for each iteration
-        # define upper and lower bound for normalization.
+        # define upper and lower bound for normalization after nPreGen generations.
         # bounds are fixed once nPreGen generations are reached.
         if(iter == param.set[[2]]){
           upper.bound = max(unlist(generation.worstfitness))
@@ -387,6 +388,8 @@ cmaes = function(
 
   result = c(result, callMonitor(monitor, "after"))
   result = c(result, paste("-1", restarts))
+  # log the type of test that caused the termination of cma-es in the output data.
+  # "-2" indicated the termination based on the chi-squared test, "-3" indicates the termination based on the t-test
   if ("OCD" %in% stop.ons.names) {
   result = c(result, paste("-2", stopped.on.t))
   result = c(result, paste("-3", stopped.on.chi))

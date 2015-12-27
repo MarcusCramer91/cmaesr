@@ -272,13 +272,12 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL)
         # PF_i is the best fitness value of the i-th generation which is used as a reference value
         # for calculating the indicator values of the last nPreGen generations
         PF_i = envir$best.fitness
-        # PI_all is a vector with one entry for each generation.
+        # PI_all is a vector with one entry for each generation, except the first generation.
         # PI_all stores the difference between the performance indicator values of the last nPreGen generations and the current generation i.
         PI_all = sapply((envir$generation.bestfitness)[-length(envir$generation.bestfitness)], function(x) x-PF_i, simplify = TRUE)
         # normalize PI_all in range upper.bound - lower.bound, i.e. the range of the objective values after nPreGen generations.
         # This value is fixed for all upcomming generations
         PI_all = PI_all/(envir$upper.bound-envir$lower.bound)
-
         # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
         PI_current_gen = PI_all[(envir$iter-nPreGen):(envir$iter -1)]
         if((envir$iter - nPreGen) <= 1){
