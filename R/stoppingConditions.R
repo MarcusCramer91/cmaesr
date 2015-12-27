@@ -289,7 +289,6 @@ stopOnOCD = function(varLimit, nPreGen)
         # perform two-sided t-test and return corresponding p-values
         pvalue_current_gen_t = pReg(PI_current_gen)
         pvalue_preceding_gen_t = pReg(PI_preceding_gen)
-       
         # log termination condition in cma_es
         if (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha) envir$stopped.on.chi = envir$stopped.on.chi + 1
         if (pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha) envir$stopped.on.t = envir$stopped.on.t + 1
@@ -321,7 +320,7 @@ pReg <- function (PI) {
   # Determin degrees of freedom
   N = length(PI)-1
   # standardize PI
-  if(all(PI==0)) {
+  if(sd(PI)==0) {
     return (1)
   }else{
     PI = (PI-mean(PI))/sd(PI)
@@ -339,7 +338,7 @@ pReg <- function (PI) {
   # compute test statistic
   t = beta/sqrt(mse*solve(X%*%X))
   # look up t distribution for N degrees of freedom
-  p_value = 2*pt(-abs(t), df=length(data)-1)
+  p_value = 2*pt(-abs(t), df=N)
   return (p_value)
 }
 
